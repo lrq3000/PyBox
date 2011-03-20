@@ -1,0 +1,8 @@
+PyBox makes use of the excellent wrapper "pydasm", for the free and 
+excellent libdasm disassembler library.
+
+The original source code (along with versions for other
+programming languages) can be obtained here:
+
+http://dbkbza.org/pydasm.html
+(c) 2005 ero / dbkza.org
