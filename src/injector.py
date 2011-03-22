@@ -5,7 +5,7 @@
 # Daniel Plohmann <plohmann<at>cs<dot>uni-bonn<dot>de>
 # All rights reserved.
 ########################################################################
-# Id:       $Id: injector.py 33 2010-07-19 14:14:21Z plohmann $
+# Id:       $Id$
 ########################################################################
 # Description:
 #   script for starting a remote process

@@ -44,7 +44,7 @@ def init():
     LoadLibrary = ctypes.windll.kernel32.LoadLibraryA
     LoadLibrary("user32.dll")
 
-    hooks = [ ("user32.dll", "LoadLibraryA", FindWindowW_handler),
+    hooks = [ ("user32.dll", "FindWindowW", FindWindowW_handler),
               ("kernel32.dll", "GetVersion", GetVersion_handler),
               ]
 

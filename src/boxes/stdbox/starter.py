@@ -8,7 +8,7 @@
 # Id:       $Id: starter.py 38 2010-09-22 12:22:10Z leder $
 ########################################################################
 # Description:
-#   Main module of pybox package
+#   Main module for the standard sandbox
 #
 ########################################################################
 #

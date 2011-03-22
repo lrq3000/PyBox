@@ -5,7 +5,7 @@
 # Daniel Plohmann <plohmann<at>cs<dot>uni-bonn<dot>de>
 # All rights reserved.
 ########################################################################
-# Id:       $Id: __init__.py 61 2011-03-15 12:51:45Z leder $
+# Id:       $Id$
 ########################################################################
 # Description:
 #   Main module of pybox package

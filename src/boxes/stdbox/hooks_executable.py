@@ -5,7 +5,7 @@
 # Daniel Plohmann <plohmann<at>cs<dot>uni-bonn<dot>de>
 # All rights reserved.
 ########################################################################
-# Id:       $Id: basic_hooks.py 33 2010-07-19 14:14:21Z plohmann $
+# Id:       $Id$
 ########################################################################
 # Description:
 #   basic collection of hooks for processes and threads
