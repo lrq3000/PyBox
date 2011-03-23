@@ -87,7 +87,7 @@ if __name__ == "__main__":
     
     logging.info("Start")
     
-    #register_hooks()
+    register_hooks()
     
     logging.info("Let's get ready to rumble")
 
