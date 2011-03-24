@@ -5,7 +5,7 @@
 # Daniel Plohmann <plohmann<at>cs<dot>uni-bonn<dot>de>
 # All rights reserved.
 ########################################################################
-# Id:       $Id: defines.py 46 2011-02-16 11:57:55Z plohmann $
+# Id:
 ########################################################################
 #
 #  This file is part of PyBox
@@ -120,9 +120,11 @@ PAGE_GUARD                     = 0x00000100
 PAGE_NOCACHE                   = 0x00000200
 PAGE_WRITECOMBINE              = 0x00000400
 
-# Structure for CreateToolhelp32Snapshot
-# MODULEENTRY32 describes layout of module snapshot entries
 class MODULEENTRY32(Structure):
+    """ 
+    Structures for CreateToolhelp32Snapshot 
+    describes layout of module snapshot entry
+    """
     _fields_ = [
         ("dwSize",         DWORD), 
         ("th32ModuleID",   DWORD),         
@@ -136,9 +138,11 @@ class MODULEENTRY32(Structure):
         ("szExePath",      c_char * 260),    
         ]
     
-# Structures for CreateProcessA() function
-# STARTUPINFO describes how to spawn the process
 class STARTUPINFO(Structure):
+    """
+    Structures for CreateProcessA() function
+    STARTUPINFO describes how to spawn the process
+    """
     _fields_ = [
         ("cb",            DWORD),        
         ("lpReserved",    LPTSTR), 
@@ -161,16 +165,22 @@ class STARTUPINFO(Structure):
         ]
     
 class SECURITY_ATTRIBUTES(Structure):
+    """
+    Structures for CreateProcessA() function
+    SECURITY_ATTRIBUTES contains the used security description
+    """
     _fields_ = [
         ("nLength",            DWORD),        
         ("lpSecurityDescriptor",    LPVOID), 
         ("bInheritHandle",     DWORD),  
         ]
 
-# PROCESS_INFORMATION receives its information
-# after the target process has been successfully
-# started.
 class PROCESS_INFORMATION(Structure):
+    """
+    PROCESS_INFORMATION receives its information
+    after the target process has been successfully
+    started.
+    """
     _fields_ = [
         ("hProcess",    HANDLE),
         ("hThread",     HANDLE),
@@ -178,8 +188,10 @@ class PROCESS_INFORMATION(Structure):
         ("dwThreadId",  DWORD),
         ]
 
-# When the dwDebugEventCode is evaluated
 class EXCEPTION_RECORD(Structure):
+    """
+    When the dwDebugEventCode is evaluated
+    """ 
     pass
     
 EXCEPTION_RECORD._fields_ = [
@@ -192,6 +204,9 @@ EXCEPTION_RECORD._fields_ = [
         ]
 
 class _EXCEPTION_RECORD(Structure):
+    """
+    information relevant for the definition of an exception 
+    """
     _fields_ = [
         ("ExceptionCode",        DWORD),
         ("ExceptionFlags",       DWORD),
@@ -201,15 +216,19 @@ class _EXCEPTION_RECORD(Structure):
         ("ExceptionInformation", UINT_PTR * 15),
         ]
 
-# Exceptions
 class EXCEPTION_DEBUG_INFO(Structure):
+    """
+    additional debugging information for an exception
+    """
     _fields_ = [
         ("ExceptionRecord",    EXCEPTION_RECORD),
         ("dwFirstChance",      DWORD),
         ]
 
-# it populates this union appropriately
 class DEBUG_EVENT_UNION(Union):
+    """
+    this Union is populated by the debugging information for exceptions 
+    """
     _fields_ = [
         ("Exception",         EXCEPTION_DEBUG_INFO),
 #        ("CreateThread",      CREATE_THREAD_DEBUG_INFO),
@@ -222,9 +241,10 @@ class DEBUG_EVENT_UNION(Union):
 #        ("RipInfo",           RIP_INFO),
         ]   
 
-# DEBUG_EVENT describes a debugging event
-# that the debugger has trapped
 class DEBUG_EVENT(Structure):
+    """
+    this structure describes a debugging event that was trapped by a debugger 
+    """
     _fields_ = [
         ("dwDebugEventCode", DWORD),
         ("dwProcessId",      DWORD),
@@ -232,8 +252,10 @@ class DEBUG_EVENT(Structure):
         ("u",                DEBUG_EVENT_UNION),
         ]
 
-# Used by the CONTEXT structure
 class FLOATING_SAVE_AREA(Structure):
+    """
+    used by the CONTEXT structure
+    """
     _fields_ = [
    
         ("ControlWord", DWORD),
@@ -247,9 +269,11 @@ class FLOATING_SAVE_AREA(Structure):
         ("Cr0NpxState", DWORD),
 ]
 
-# The CONTEXT structure which holds all of the 
-# register values after a GetThreadContext() call
 class CONTEXT(Structure):
+    """
+    this structure holds all values of thread context
+    including register values, segment fields
+    """
     _fields_ = [
     
         ("ContextFlags", DWORD),
@@ -279,10 +303,11 @@ class CONTEXT(Structure):
         ("ExtendedRegisters", BYTE * 512),
 ]
 
-# THREADENTRY32 contains information about a thread
-# we use this for enumerating all of the system threads
-
 class THREADENTRY32(Structure):
+    """
+    contains information about a thread
+    we use this for enumerating all of the system threads
+    """
     _fields_ = [
         ("dwSize",             DWORD),
         ("cntUsage",           DWORD),
@@ -293,24 +318,30 @@ class THREADENTRY32(Structure):
         ("dwFlags",            DWORD),
     ]
 
-# Supporting struct for the SYSTEM_INFO_UNION union
 class PROC_STRUCT(Structure):
+    """
+    Supporting struct for the SYSTEM_INFO_UNION union
+    """
     _fields_ = [
         ("wProcessorArchitecture",    WORD),
         ("wReserved",                 WORD),
 ]
 
 
-# Supporting union for the SYSTEM_INFO struct
 class SYSTEM_INFO_UNION(Union):
+    """
+    Supporting union for the SYSTEM_INFO struct
+    """
     _fields_ = [
         ("dwOemId",    DWORD),
         ("sProcStruc", PROC_STRUCT),
 ]
-# SYSTEM_INFO structure is populated when a call to 
-# kernel32.GetSystemInfo() is made. We use the dwPageSize
-# member for size calculations when setting memory breakpoints
 class SYSTEM_INFO(Structure):
+    """
+    SYSTEM_INFO structure is populated when a call to 
+    kernel32.GetSystemInfo() is made. We use the dwPageSize
+    member for size calculations when setting memory breakpoints
+    """
     _fields_ = [
         ("uSysInfo", SYSTEM_INFO_UNION),
         ("dwPageSize", DWORD),
@@ -324,10 +355,12 @@ class SYSTEM_INFO(Structure):
         ("wProcessorRevision", WORD),
 ]
 
-# MEMORY_BASIC_INFORMATION contains information about a 
-# particular region of memory. A call to kernel32.VirtualQuery()
-# populates this structure.
 class MEMORY_BASIC_INFORMATION(Structure):
+    """
+    MEMORY_BASIC_INFORMATION contains information about a 
+    particular region of memory. A call to kernel32.VirtualQuery()
+    populates this structure
+    """
     _fields_ = [
         ("BaseAddress", PVOID),
         ("AllocationBase", PVOID),
