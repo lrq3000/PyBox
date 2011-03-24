@@ -27,7 +27,7 @@
 ########################################################################
 
 from ctypes import c_ubyte, c_ushort, c_ulong, POINTER, c_char, c_void_p, \
-     c_int, Structure, Union
+     c_int, Structure
 
 
 # Let's map the Microsoft types to ctypes for clarity
@@ -82,7 +82,9 @@ PAGE_GUARD                = 0x00000100
 PAGE_NOCACHE              = 0x00000200
 PAGE_WRITECOMBINE         = 0x00000400
 
+# The following 2 structures are used for the creation of processes
 class STARTUPINFO(Structure):
+    """ used in kernel32.CreateProcess """
     _fields_ = [
         ("cb",            DWORD),        
         ("lpReserved",    LPTSTR), 
@@ -105,6 +107,7 @@ class STARTUPINFO(Structure):
         ]
 
 class PROCESS_INFORMATION(Structure):
+    """" used in kerne32.CreateProcess """
     _fields_ = [
         ("hProcess",    HANDLE),
         ("hThread",     HANDLE),
@@ -112,28 +115,33 @@ class PROCESS_INFORMATION(Structure):
         ("dwThreadId",  DWORD),
         ]
 
+# The following 3 Structures are used to manipulate process access tokens
 class LUID(Structure):
+    """ defines a locally unique identifier """
     _fields_ = [
         ('LowPart', DWORD),
         ('HighPart', LONG),
         ]
 
 class LUID_AND_ATTRIBUTES(Structure):
+    """" contains LUID and the attributes of it """
     _fields_ = [
         ('Luid', LUID),
         ('Attributes', DWORD),
         ]
     
 class TOKEN_PRIVILEGES(Structure):
+    """ defines a set of privileges for an access token """
     _fields_ = [
         ('PrivilegeCount', DWORD),
         ('Privileges', LUID_AND_ATTRIBUTES),
         ]
 
-# MEMORY_BASIC_INFORMATION contains information about a 
-# particular region of memory. A call to kernel32.VirtualQuery()
-# populates this structure.
+# The following structure is used for analysis and manipulation of memory
 class MEMORY_BASIC_INFORMATION(Structure):
+    """ contains information about a particular region of memory
+        A call to kernel32.VirtualQuery() populates this structure.
+    """
     _fields_ = [
         ("BaseAddress", PVOID),
         ("AllocationBase", PVOID),
