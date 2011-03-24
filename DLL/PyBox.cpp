@@ -27,6 +27,7 @@ char *PYBOX_FILE = NULL;
 static PyObject *pythonCallbackHandler = NULL;
 static PyObject *pythonCleanupCallback = NULL;
 static int callbackLock = 0;
+static int globalLock = 0; //lock for all threads
 
 static HINSTANCE dll_handle = NULL;
 
@@ -54,6 +55,7 @@ CRITICAL_SECTION thread_lock_section;
 CRITICAL_SECTION python_GIL_section;
 
 #endif
+
 
 void writeLog(char *msg) {
 	char timestamp_buf[128];
@@ -94,6 +96,9 @@ void __stdcall genericCallback(unsigned int originAddr, unsigned int check_lock)
 	DWORD tid = GetCurrentThreadId();
 	INT2BOOLMAP::iterator lm_iter;
 
+	if (globalLock)
+		return;  //stop if global lock is set
+
 	if (check_lock) {	
 
 		EnterCriticalSection(&thread_lock_section);
@@ -131,6 +136,7 @@ void __stdcall genericCallback(unsigned int originAddr, unsigned int check_lock)
 	EnterCriticalSection(&python_GIL_section);
 	PyGILState_STATE state = PyGILState_Ensure();
 #endif
+
 
 	__asm {
 		mov eax, ebp;
@@ -377,6 +383,27 @@ static PyObject* pybox_getProcessId(PyObject *self, PyObject *args) {
 	return returnObj;
 }
 
+
+/*
+	pybox_setGlobalLock
+
+	Python-name: setGlobalLock
+
+	C function for setting the global lock
+*/
+static PyObject* pybox_setGlobalLock(PyObject *self, PyObject *args) {
+	writeDebugMsg("emb.setGlobalLock called");
+
+	if(!PyArg_ParseTuple(args, "i", (int*)&globalLock)) {
+   	     return NULL;
+	}
+
+	writeDebugMsg("emb.setGlobalLock left");
+	return Py_None;
+}
+
+
+
 /*
    pybox_getSelfFilename
 
@@ -405,7 +432,28 @@ static PyObject* pybox_getSelfFilename(PyObject *self, PyObject *args) {
 }
 
 
+/* returns the callback address from this DLL to python
+ * 
+ */
+//fixme: remove
+/*
+static PyObject* pybox_mallocWrapper(PyObject *self, PyObject *args) {
+	int numBytes;
+	void *memAddr;
+	writeDebugMsg("emb.mallocWrapper called");
+	if(!PyArg_ParseTuple(args, "i", &numBytes)) {
+   	     return NULL;
+	}
+	memAddr = (void*)malloc(numBytes);
+	PyObject *returnObj = Py_BuildValue("i", &memAddr);
+	writeDebugMsg("emb.mallocWrapper left");
+	return returnObj;
+}
+*/
+
+
 /* C example remote function for python script */
+// todo: remove
 static PyObject* pybox_sampleCall(PyObject *self, PyObject *args) {
 	writeDebugMsg("emb.sampleCall called");
 	char msg[32];
@@ -428,7 +476,8 @@ static PyMethodDef embeddedMethods[] = {
 	{"dllGetProcessId", pybox_getProcessId, METH_VARARGS, "wrapper for kernel32.GetProcessId (not included in ctypes)"},
 	{"setCleanupFunction", pybox_setCleanupFunction, METH_VARARGS, "Registers a cleanup function that gets called before the interpreter terminates"},
 	{"dllGetFilename", pybox_getSelfFilename, METH_VARARGS, "Returns the path of the dll itself (useful for injection of same dll into other processes)"},
-	{"example", pybox_sampleCall, METH_VARARGS, "example of an embedded function"},
+	{"setGlobalLock", pybox_setGlobalLock, METH_VARARGS, "Set the global lock to True (don't monitor anything) or False (regular monitoring)"},
+	{"example", pybox_sampleCall, METH_VARARGS, "example call"},
 	{NULL, NULL, 0, NULL}
 };
 

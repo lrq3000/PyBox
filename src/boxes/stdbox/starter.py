@@ -68,7 +68,6 @@ def register_hooks():
     hooks_misc.init()
     hooks_network.init()
     hooks_registry.init()
-    hooks_registry.init()
     hooks_services.init()
     hooks_synchronisation.init()
     
@@ -84,10 +83,17 @@ if __name__ == "__main__":
     pybox.init()
     pybox.proctrack.init()
     emb.setCleanupFunction(cleaner)
+
+    logging.info("Starting to monitor (pid: %i): %s" % \
+                     (pybox.get_process_id(), pybox.get_process_path())
+                 )
+
     
     logging.info("Start")
     
+    emb.setGlobalLock(True)
     register_hooks()
+    emb.setGlobalLock(False)
     
     logging.info("Let's get ready to rumble")
 

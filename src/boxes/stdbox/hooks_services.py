@@ -64,23 +64,26 @@ def init():
 def OpenSCManagerW_handler(exec_ctx):
     """Callback for OpenSCManagerW"""
     args = exec_ctx.get_stack_args("uud")
-    logging.info("kernel32.dll.OpenSCManagerW(%s, %s, 0x%08x)" % args)
+    if args:
+        logging.info("kernel32.dll.OpenSCManagerW(%s, %s, 0x%08x)" % args)
 
     return
 
 def CreateServiceA_handler(exec_ctx):
     """Callback for CreateServiceA"""
     args = exec_ctx.get_stack_args("daaddddaadaaa")
-    logging.info("kernel32.dll.CreateServiceA(0x%08x, %s, %s, 0x%08x, " \
-                 "0x%08x, 0x%08x, 0x%08x, %s, %s, 0x%08x, %s, %s, %s)" % args)
+    if args:
+        logging.info("kernel32.dll.CreateServiceA(0x%08x, %s, %s, 0x%08x, " \
+                         "0x%08x, 0x%08x, 0x%08x, %s, %s, 0x%08x, %s, %s, %s)" % args)
 
     return
 
 def CreateServiceW_handler(exec_ctx):
     """Callback for CreateServiceW"""
     args = exec_ctx.get_stack_args("duudddduuduuu")
-    logging.info("kernel32.dll.CreateServiceW(0x%08x, %s, %s, 0x%08x, " \
-                 "0x%08x, 0x%08x, 0x%08x, %s, %s, 0x%08x, %s, %s, %s)" % args)
+    if args:
+        logging.info("kernel32.dll.CreateServiceW(0x%08x, %s, %s, 0x%08x, " \
+                     "0x%08x, 0x%08x, 0x%08x, %s, %s, 0x%08x, %s, %s, %s)" % args)
 
     return
 
