@@ -39,7 +39,6 @@ import struct
 import sys
 import time
 
-import emb
 import pybox
 import pybox.hooking
 import pybox.memorymanager
@@ -82,7 +81,7 @@ if __name__ == "__main__":
     
     pybox.init()
     pybox.proctrack.init()
-    emb.setCleanupFunction(cleaner)
+    pybox.set_cleanup_function(cleaner)
 
     logging.info("Starting to monitor (pid: %i): %s" % \
                      (pybox.get_process_id(), pybox.get_process_path())
@@ -91,9 +90,9 @@ if __name__ == "__main__":
     
     logging.info("Start")
     
-    emb.setGlobalLock(True)
+    pybox.set_global_lock(True)
     register_hooks()
-    emb.setGlobalLock(False)
+    pybox.set_global_lock(False)
     
     logging.info("Let's get ready to rumble")
 

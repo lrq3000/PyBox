@@ -199,3 +199,29 @@ def init():
     
     logging.debug("pybox.init - exiting.")
 
+
+def terminate(exitcode):
+    """Performs a safe termination of PyBox.
+    @param exitcode: Defines the exitcode of the Python environment
+    @type exitcode: int
+    """
+    emb.terminate(exitcode)
+
+
+def set_global_lock(lock_flag):
+    """Sets the global lock status. If Global Lock Status is C{True}, no
+    hooks are executed. All control is passsed to the hooked function. Thus,
+    this will still run.
+    @param lock_flag: Flag to tell if global lock is to be set C{True} or not
+                      C{False}
+    @type lock_flag: boolean
+    """
+    emb.setGlobalLock(lock_flag)
+
+
+def set_cleanup_function(cleanup_function):
+    """Sets the cleanup function, which is called when PyBox terminates.
+    @param cleanup_function: The callback to execute on cleanup
+    @type cleanup_function: function
+    """
+    emb.setCleanupFunction(cleanup_function)

@@ -82,7 +82,7 @@ def init():
 
     if not pybox.register_hook("kernel32.dll",
                      "ResumeThread",
-                     callback_resume_thread):
+                     cb_resume_thread):
         logging.error("Failed to register hook for CreateRemoteThread") 
 
 
@@ -112,7 +112,7 @@ def cb_create_process_internal_w(exec_ctx):
 
     if not pybox.register_return_hook("CreateProcessInternalW_return", \
                                       exec_ctx, \
-                                      callback_create_process_internal_w_rtn,
+                                      cb_create_process_internal_w_rtn,
                                       child_proc_info):
         logging.error("Cannot install return hook for " \
                       "CreateProcessInternalW_return")
@@ -162,7 +162,7 @@ def cb_create_r_thread(exec_ctx):
         
         if not pybox.register_return_hook("CreateRemoteThread_return", \
                                           exec_ctx, \
-                                          callback_create_r_thread_rtn,
+                                          cb_create_r_thread_rtn,
                                           hookdata):
             logging.error("Cannot install return hook for CreateRemoteThread")
     else: 
@@ -194,7 +194,7 @@ def cb_create_r_thread_rtn(exec_ctx):
     return
 
 
-def callback_resume_thread(exec_ctx):
+def cb_resume_thread(exec_ctx):
     """ResumeThread"""
     #wait for some seconds to allow injection to come up
     logging.info("ResumeThread")
