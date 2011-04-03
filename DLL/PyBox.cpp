@@ -60,7 +60,7 @@ CRITICAL_SECTION python_GIL_section;
 void writeLog(char *msg) {
 	char timestamp_buf[128];
 
-	snprintf(timestamp_buf, sizeof(timestamp_buf)-1, "%0.3fs PyBox.dll: ", (1.0 * clock() / CLOCKS_PER_SEC));
+	_snprintf_s(timestamp_buf, sizeof(timestamp_buf)-1, "%0.3fs PyBox.dll: ", (1.0 * clock() / CLOCKS_PER_SEC));
 	OutputDebugStringA(timestamp_buf);
 	OutputDebugStringA(msg);
 	OutputDebugStringA("\n");	
@@ -137,7 +137,6 @@ void __stdcall genericCallback(unsigned int originAddr, unsigned int check_lock)
 	PyGILState_STATE state = PyGILState_Ensure();
 #endif
 
-
 	__asm {
 		mov eax, ebp;
 		mov ebpAddr, eax;
@@ -171,7 +170,7 @@ void __stdcall genericCallback(unsigned int originAddr, unsigned int check_lock)
 	} else {	    
 	}
 
-    Py_DECREF(result);
+	Py_DECREF(result);
 
 #ifdef USE_THREADS
 	PyGILState_Release(state);
@@ -186,6 +185,7 @@ void __stdcall genericCallback(unsigned int originAddr, unsigned int check_lock)
 	if (check_lock)
 		callbackLock = 0;
 #endif
+	
 
 	return;
 }
@@ -431,6 +431,44 @@ static PyObject* pybox_getSelfFilename(PyObject *self, PyObject *args) {
 	return result;
 }
 
+/*
+   pybox_terminate
+
+   Python-name: terminate
+
+   Terminates pybox from within a hook.
+   This requires some special cleanup in order to
+   be stable.
+*/
+static PyObject* pybox_terminate(PyObject *self, PyObject *args) {
+	writeDebugMsg("Terminate PyBox");
+
+	int exitcode;
+	PyObject *result = NULL;
+	PyObject *arglist = NULL;
+
+
+	if(!PyArg_ParseTuple(args, "i", (int*)&exitcode)) {
+   	     return NULL;
+	}
+
+
+	if (pythonCleanupCallback && PyCallable_Check(pythonCleanupCallback)) {
+		arglist = Py_BuildValue("()");
+		result = PyEval_CallObject(pythonCleanupCallback, arglist);
+		Py_XDECREF(arglist);
+		Py_XDECREF(result);
+		Py_XDECREF(pythonCleanupCallback);
+		pythonCleanupCallback = NULL;
+	}
+	
+	Py_Exit(exitcode);
+
+	OutputDebugStringA("Terminate done");
+	return result;
+}
+
+
 
 /* returns the callback address from this DLL to python
  * 
@@ -477,6 +515,7 @@ static PyMethodDef embeddedMethods[] = {
 	{"setCleanupFunction", pybox_setCleanupFunction, METH_VARARGS, "Registers a cleanup function that gets called before the interpreter terminates"},
 	{"dllGetFilename", pybox_getSelfFilename, METH_VARARGS, "Returns the path of the dll itself (useful for injection of same dll into other processes)"},
 	{"setGlobalLock", pybox_setGlobalLock, METH_VARARGS, "Set the global lock to True (don't monitor anything) or False (regular monitoring)"},
+	{"terminate", pybox_terminate, METH_VARARGS, "Terminate pybox from within a hook. Argument is the Python exit code."},
 	{"example", pybox_sampleCall, METH_VARARGS, "example call"},
 	{NULL, NULL, 0, NULL}
 };
@@ -593,25 +632,27 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD dwReason, LPVOID reserved) {
 		OutputDebugStringA("Thread detached\n");
 	}
 	if (dwReason == DLL_PROCESS_DETACH) {	
+		OutputDebugStringA("Process detach");
 
 		PyObject *result = NULL;
 		PyObject *arglist = NULL;
+		if (pythonCleanupCallback) {
 #ifdef USE_THREADS
-		EnterCriticalSection(&python_GIL_section);
-		PyGILState_STATE state = PyGILState_Ensure();
+			EnterCriticalSection(&python_GIL_section);
+			PyGILState_STATE state = PyGILState_Ensure();
 #endif		
-		if (pythonCleanupCallback && PyCallable_Check(pythonCleanupCallback)) {
-			arglist = Py_BuildValue("()");
-			result = PyEval_CallObject(pythonCleanupCallback, arglist);
-			Py_XDECREF(arglist);
-			Py_XDECREF(result);
-		}
-		OutputDebugStringA("Closing process.");
+			if (PyCallable_Check(pythonCleanupCallback)) {
+				arglist = Py_BuildValue("()");
+				result = PyEval_CallObject(pythonCleanupCallback, arglist);
+				Py_XDECREF(arglist);
+				Py_XDECREF(result);
+			}
 #ifdef USE_THREADS
-		PyGILState_Release(state);
-		LeaveCriticalSection(&python_GIL_section);
+			PyGILState_Release(state);
+			LeaveCriticalSection(&python_GIL_section);			
 #endif	
-
+		}
+		OutputDebugStringA("PyBox: All done");
 	}
 	return TRUE;
 }
