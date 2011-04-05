@@ -431,6 +431,27 @@ static PyObject* pybox_getSelfFilename(PyObject *self, PyObject *args) {
 	return result;
 }
 
+/* 
+   pybox_getPebAddress
+
+   Python-name: dllGetPebAddress
+
+   Returns the start address of Process Environment Block. Used
+   for acquiring information about certain process attributes, including the
+   image base address, useful e.g. for dumping.
+ */
+static PyObject* pybox_getPebAddress(PyObject *self, PyObject *args) {
+	writeDebugMsg("emb.getPebAddress called");
+	void *pPeb;
+    __asm {
+        mov EAX, FS:[0x30]
+        mov [pPeb], EAX
+    }			
+	PyObject *returnObj = Py_BuildValue("I", pPeb);
+	writeDebugMsg("emb.getPebAddress left");
+	return returnObj;
+}
+
 /*
    pybox_terminate
 
@@ -507,6 +528,8 @@ static PyObject* pybox_sampleCall(PyObject *self, PyObject *args) {
 	return result;
 }
 
+
+
 static PyMethodDef embeddedMethods[] = { 
 	{"dllAttachPythonCallback", pybox_attachPythonCallback, METH_VARARGS, "attach python callback handler to injected DLL."},
 	{"dllEnumerateExportedFunctions", pybox_enumerateExportedFunctions, METH_VARARGS, "enumerate all exported functions for given module name"},
@@ -515,6 +538,7 @@ static PyMethodDef embeddedMethods[] = {
 	{"setCleanupFunction", pybox_setCleanupFunction, METH_VARARGS, "Registers a cleanup function that gets called before the interpreter terminates"},
 	{"dllGetFilename", pybox_getSelfFilename, METH_VARARGS, "Returns the path of the dll itself (useful for injection of same dll into other processes)"},
 	{"setGlobalLock", pybox_setGlobalLock, METH_VARARGS, "Set the global lock to True (don't monitor anything) or False (regular monitoring)"},
+	{"dllGetPebAddress", pybox_getPebAddress, METH_VARARGS, "Aquire start address of Process Environment Block."},
 	{"terminate", pybox_terminate, METH_VARARGS, "Terminate pybox from within a hook. Argument is the Python exit code."},
 	{"example", pybox_sampleCall, METH_VARARGS, "example call"},
 	{NULL, NULL, 0, NULL}
