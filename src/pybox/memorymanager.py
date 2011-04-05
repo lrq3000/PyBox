@@ -70,15 +70,21 @@ def read_addr(address, num_bytes):
         logging.warning("[read_addr] Memory: State != MEM_COMMIT for addr " \
                         "0x%08x (is 0x%08x)!", address, mbi.State)
         return ""
+    
+    elif (mbi.Protect & 0x100) == 0x100:
+        logging.warning("[read_addr] Trying to access a guard page at " \
+                        "address 0x%08x. Skipping memory operation", address)
+        return ""
 
     elif (mbi.Protect & 0xe6) == 0:
         mem = read_protected_addr(mbi, address, num_bytes)
         return mem
     
+    
     else:
         mem_buffer = ctypes.create_string_buffer(num_bytes)
-        ctypes.memmove(ctypes.addressof(mem_buffer), address, num_bytes)
-
+        mem_buffer_addr = ctypes.addressof(mem_buffer)
+        ctypes.memmove(mem_buffer_addr, address, num_bytes)
         return mem_buffer.raw
 
 
@@ -175,6 +181,19 @@ def read_dword_from_addr(address):
     mem_buffer = read_addr(address, 4)
     if len(mem_buffer) == 4:
         return struct.unpack("I", mem_buffer)[0]
+
+    return 0
+
+def read_word_from_addr(address):
+    """read a dword (4 bytes) from a given memory address. The function 
+    indirectly uses read_addr()
+    @param address: address to read from
+    @type address: int
+    @return: dword read
+    """
+    mem_buffer = read_addr(address, 2)
+    if len(mem_buffer) == 2:
+        return struct.unpack("h", mem_buffer)[0]
 
     return 0
 
