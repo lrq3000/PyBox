@@ -26,6 +26,7 @@
 #
 ########################################################################
 
+import struct
 from ctypes import c_ubyte, c_ushort, c_ulong, POINTER, c_char, c_void_p, \
      c_int, Structure, Union
 
@@ -45,7 +46,8 @@ HMODULE   = c_ulong
 NULL = c_int(0)
 
 #CreateToolhelp32Snapshot
-TH32CS_SNAPMODULE = 0x0000008
+TH32CS_SNAPMODULE = 0x00000008
+TH32CS_SNAPTHREAD = 0x00000004
 
 # Constants
 DEBUG_PROCESS         = 0x00000001
@@ -137,6 +139,7 @@ class MODULEENTRY32(Structure):
         ("szModule",       c_char * 256),
         ("szExePath",      c_char * 260),    
         ]
+    
     
 class STARTUPINFO(Structure):
     """
@@ -336,6 +339,7 @@ class SYSTEM_INFO_UNION(Union):
         ("dwOemId",    DWORD),
         ("sProcStruc", PROC_STRUCT),
 ]
+    
 class SYSTEM_INFO(Structure):
     """
     SYSTEM_INFO structure is populated when a call to 
@@ -370,4 +374,29 @@ class MEMORY_BASIC_INFORMATION(Structure):
         ("Protect", DWORD),
         ("Type", DWORD),
 ]
+    
+class IMAGE_SECTION_HEADER(Structure):
+    """
+    IMAGE_SECTION_HEADER contains information about a section defined in the 
+    PE header of a executable file. 
+    """
+    _fields_ = [
+        ("Name1", DWORD),
+        ("Name2", DWORD),
+        ("VirtualSize", DWORD),
+        ("VirtualAddress", DWORD),
+        ("SizeOfRawData", DWORD),
+        ("PointerToRawData", DWORD),
+        ("PointerToRelocations", DWORD),
+        ("PointerToLinenumbers", DWORD),
+        ("NumberOfRelocations", WORD),
+        ("NumberOfLinenumbers", WORD),
+        ("Characteristics", DWORD),
+]    
+    def getSectionName(self):
+        name = "\""
+        name += struct.pack("I", self.Name1)
+        name += struct.pack("I", self.Name2)
+        name += "\""
+        return name
     

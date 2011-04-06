@@ -35,9 +35,12 @@ dumps.
 import logging
 import sys
 import os
+from ctypes import sizeof, addressof, memmove
 
+#pybox includes
 import pybox
 import pybox.memorymanager
+import defines
 
 def dump_pe_image():
     """
@@ -52,7 +55,7 @@ def dump_pe_image():
     """
     
     logging.info("Starting the dumping of PE memory image.")
-    # Get image base adddress from Process Environment Block
+    # get image base from Process Environment Block
     image_base_addr = pybox.memorymanager.read_dword_from_addr(\
                                         pybox.get_peb_address() + 0x08)
     start_pe_header = image_base_addr + \
@@ -70,39 +73,40 @@ def dump_pe_image():
         print >> sys.stderr, "Failed to open file: \"%s\" for " \
             "dumping." % dump_file_name
         return False
-    size_next_raw_data = 0
-    next_virtual_address = 0
     
     logging.info("Base address of PE image: 0x%08x", image_base_addr)
     logging.info("number of sections identified in header: " \
                  "0x%08x", num_sections)
     logging.info("Dumping to target file: %s", dump_file_name)
     
+    pe_header_finished = False
+    # iterate sections and dump then one-by-one
+    # if PE header has not been build, start with the header
     for i in xrange(num_sections):
-        if i is 0:
-            logging.info("Building PE header...")
-            # Size of PE header is determined by the start of the next section.
-            size_pe_header = pybox.memorymanager.read_dword_from_addr(start_sections + 0x14)
-            size_next_raw_data = pybox.memorymanager.read_dword_from_addr(start_sections + 0x10)
-            next_virtual_address = pybox.memorymanager.read_dword_from_addr(start_sections + 0x0c)
-            header = pybox.memorymanager.read_addr(image_base_addr, size_pe_header)
-            dump_file.write(header)
-        else:
-            section = pybox.memorymanager.read_addr(image_base_addr + \
-                                    next_virtual_address, size_next_raw_data)
-            dump_file.write(section)
-            size_next_raw_data = pybox.memorymanager.read_dword_from_addr(start_sections+i*40 + 0x10)
-            next_virtual_address = pybox.memorymanager.read_dword_from_addr(start_sections+i*40 + 0x0c)
-        logging.info("Building section with name: \"%s\"...", \
-                pybox.memorymanager.read_ascii_from_addr(start_sections+i*40))
-    
-    final_section = pybox.memorymanager.read_addr(image_base_addr + \
-                                    next_virtual_address, size_next_raw_data)
-    dump_file.write(final_section)
+        section_header = defines.IMAGE_SECTION_HEADER()
+        memmove(addressof(section_header), pybox.memorymanager.read_addr(start_sections+i*40, 40), sizeof(section_header))
+        # find first non-zero section offset (PointerToRawData)
+        # some packers (e.g. UPX) insert a dummy section
+        if section_header.PointerToRawData > 0:
+            if not pe_header_finished:
+                logging.info("Building PE header...")
+                # Size of whole PE header is determined by the pointer to 
+                # the next section.
+                size_pe_header = section_header.PointerToRawData
+                header = pybox.memorymanager.read_addr(image_base_addr, size_pe_header)
+                dump_file.write(header)
+                pe_header_finished = True
+            logging.info("Dumping memory of section: %s", section_header.getSectionName())
+            # append current section to the dumped PE image
+            section_memory = pybox.memorymanager.read_addr(image_base_addr + \
+                                    section_header.VirtualAddress, section_header.SizeOfRawData)
+            dump_file.write(section_memory)
+
     dump_file.close()
     logging.info("Dumping done!")
     
     return
+
 
 def dump_full():
     """
@@ -127,6 +131,7 @@ def dump_full():
 
         (start, size) = region_info
         if not pybox.MODULES.get_module_name(addr).endswith(".DLL"):
+            (start, end) = (start, start + size)
             logging.info("trying to dump memory region beginning at 0x%08x " \
                          "with size 0x%08x.", start, size)
             
