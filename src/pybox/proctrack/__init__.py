@@ -154,8 +154,8 @@ def cb_create_r_thread(exec_ctx):
     process_handle = stack_args[0]
     
     if process_handle != 0xFFFFFFFF:
-        logging.info("PROCESS_HANDLE: 0x%08x" % PROCESS_HANDLE)
-        pid = emb.dllGetProcessId(PROCESS_HANDLE)
+        logging.info("PROCESS_HANDLE: 0x%08x" % process_handle)
+        pid = emb.dllGetProcessId(process_handle)
         logging.debug("PID of target host process: 0x%08x" % pid)
 
         hookdata = (pid, r_threadid_addr)
